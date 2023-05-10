@@ -1,11 +1,10 @@
 import abc
 import os
-
 import CVSBlobBuilder
 import CVSBranchProcessor
 import CVSIndex
-import CVSHash
 import CVSTreeBuilder
+import CVSFileSystemAdapter
 
 
 class CVSCommand(abc.ABC):
@@ -14,7 +13,11 @@ class CVSCommand(abc.ABC):
         self._type = ''
 
     @abc.abstractmethod
-    def do(self):
+    def __call__(self, *args, **kwargs):
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def _do(self):
         raise NotImplementedError
 
     pass
@@ -25,7 +28,10 @@ class InitCommand(CVSCommand):
         self._type = 'init'
         self._path = path
 
-    def do(self):
+    def __call__(self, *args, **kwargs):
+        self._do()
+
+    def _do(self):
         if os.path.exists(self._path + '/.cvs'):
             print('Already exist')
             return
@@ -46,42 +52,28 @@ class AddCommand(CVSCommand):
     def __init__(self, rep, path=''):
         self._path = path
         self._rep = rep
+        self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
+        self._blob_builder = CVSBlobBuilder.CVSBlobBuilder(rep)
 
-    def do(self):
-        if self._path == '':
-            path = f'{self._rep}'
+    def __call__(self, *args, **kwargs):
+        self._do()
+
+    def _do(self):
+        if self._files.is_file(self._path):
+            self._add_file(self._files.get_full_path(self._path))
         else:
-            path = f'{self._rep}/{self._path}'
-
-        if os.path.isfile(path):
-            self._add_file(path)
-        else:
-            for p in os.walk(path):
-                if '.cvs' in p[0]:
-                    continue
-
-                p0 = p[0].replace('\\', '/')
-                for f in p[2]:
-                    self._add_file(f'{p0}/{f}')
+            for p in self._files.get_all_filepaths(self._path):
+                self._add_file(p)
 
     def _add_file(self, path):
-        content = self._read_file(path)
-        # h = CVSHash.get_cvs_hash(content)
+        content = self._files.read_file(path)
 
-        # blob file creation
-        blob_builder = CVSBlobBuilder.CVSBlobBuilder(self._rep)
-        h = blob_builder.build(content)
-        # dir_path = f'{self._rep}/.cvs/objects/{h[:2]}'
-        # if not os.path.exists(dir_path):
-        #     os.mkdir(dir_path)
-        # with open(dir_path + f'/{h[2:]}', 'w') as f:
-        #     f.truncate()
-        #     f.write(content)
+        h = self._blob_builder.build(content)
 
         # indexing
         index = CVSIndex.CVSIndex(self._rep)
         d = index.read_index()
-        d[path] = h
+        d[self._files.get_full_path(path)] = h
         index.write_index(d)
 
     @staticmethod
@@ -103,7 +95,10 @@ class CommitCommand(CVSCommand):
         self._blob_builder = CVSBlobBuilder.CVSBlobBuilder(rep)
         self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
 
-    def do(self):
+    def __call__(self, *args, **kwargs):
+        self._do()
+
+    def _do(self):
         tree, not_found = self._tree_builder.build()
         if len(not_found) != 0:
             print(f'Unable to find files: {list(not_found)}')
@@ -120,7 +115,52 @@ class CommitCommand(CVSCommand):
                  f'\n' \
                  f'{self._message}'
         h = self._blob_builder.build(commit)
+        if branch is None:
+            self._branch_processor.set_head_to_commit(h)
+            pass
         self._branch_processor.set_branch_commit(branch, h)
         pass
 
     pass
+
+
+class CheckoutCommand(CVSCommand):
+    def __init__(self, rep, to):
+        self._rep = rep
+        self._to = to
+        self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
+        self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
+        pass
+
+    def __call__(self, *args, **kwargs):
+        self._do()
+
+    def _do(self):
+        commit_hash = self._get_commit()
+        if commit_hash is None:
+            commit_hash = self._get_branch_commit()
+            if commit_hash is None:
+                raise Exception(f'Unable to find {commit_hash}')
+            else:
+                self._branch_processor \
+                    .set_head_to_commit(commit_hash)
+                self._files.load_commit(commit_hash)
+        else:
+            print(commit_hash[1])
+            self._branch_processor\
+                .set_head_to_commit(commit_hash[1])
+            self._files.load_commit(commit_hash[1])
+        pass
+
+    def _get_commit(self):
+        return list(self._files.get_object_path(self._to))[0]
+
+    def _get_branch_commit(self):
+        path = f'.cvs/refs/heads/{self._to}'
+        if not self._files.exist(path):
+            return None
+
+        return self._files.read_file(path)
+
+
+

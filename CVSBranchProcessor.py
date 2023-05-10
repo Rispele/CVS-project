@@ -31,8 +31,12 @@ class CVSBranchProcessor:
         return self._files.read_file(path)
 
     def set_branch_commit(self, branch, commit_hash):
-        path = f'{self._rep}/.cvs/refs/heads/{branch}'
+        self._files.write(f'.cvs/refs/heads/{branch}', commit_hash)
 
-        with open(path, 'w') as f:
-            f.write(commit_hash)
         pass
+
+    def set_head_to_commit(self, commit):
+        self._files.write('.cvs/HEAD', f'obj: {commit}')
+        pass
+
+

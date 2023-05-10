@@ -27,12 +27,12 @@ class CVSTreeBuilder:
             if os.path.isfile(to_open_path):
                 if to_open_path in self._indexed:
                     self._not_found.remove(to_open_path)
-                    tree.append(f'blob {self._index[to_open_path]}')
+                    tree.append(f'blob {self._index[to_open_path]} {p}')
             else:
                 h, is_empty = self._build(to_open_path)
                 if is_empty:
                     continue
-                tree.append(f'tree {h}')
+                tree.append(f'tree {h} {p}')
 
         if len(tree) == 0:
             return '', True
@@ -41,7 +41,7 @@ class CVSTreeBuilder:
         for rec in tree:
             content += rec + '\n'
         if len(content) > 0:
-            content = content[0:-2]
+            content = content[0:-1]
 
         return self._blob_builder.build(content), False
 
