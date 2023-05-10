@@ -1,14 +1,14 @@
 import os
+import CVSFileSystemAdapter
 
 
 class CVSBranchProcessor:
     def __init__(self, rep):
         self._rep = rep
+        self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
 
     def get_head_branch(self):
-        path = f'{self._rep}/.cvs/HEAD'
-        with open(path) as f:
-            content = f.read()
+        content = self._files.read_file('.cvs/HEAD')
         head_type, head_pointer = content.split(': ')
         if head_type != 'ref':
             return None
@@ -16,9 +16,7 @@ class CVSBranchProcessor:
             return head_pointer.split('/')[2]
 
     def get_head_commit(self):
-        path = f'{self._rep}/.cvs/HEAD'
-        with open(path) as f:
-            content = f.read()
+        content = self._files.read_file('.cvs/HEAD')
         head_type, head_pointer = content.split(': ')
         if head_type != 'ref':
             return head_pointer
@@ -26,13 +24,11 @@ class CVSBranchProcessor:
             return None
 
     def get_branch_commit(self, branch):
-        path = f'{self._rep}/.cvs/refs/heads/{branch}'
-        if not os.path.exists(path):
+        path = f'.cvs/refs/heads/{branch}'
+        if not self._files.exist(path):
             return None
 
-        with open(path) as f:
-            return f.read()
-        pass
+        return self._files.read_file(path)
 
     def set_branch_commit(self, branch, commit_hash):
         path = f'{self._rep}/.cvs/refs/heads/{branch}'
