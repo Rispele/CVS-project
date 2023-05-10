@@ -18,14 +18,19 @@ class CVSFileSystemAdapter:
                 continue
 
             p0 = p[0].replace('\\', '/')
-            for f in p[2]:
-                yield f'{p0}/{f}'
+            if p0 == self._rep:
+                for f in p[2]:
+                    yield f'{f}'
+            else:
+                p0 = p0[(p0.find('/') + 1):]
+                for f in p[2]:
+                    yield f'{p0}/{f}'
 
     def get_object_path(self, object_hash):
         for p in self.get_all_filepaths(f'.cvs/objects', exclude_cvs=False):
             parts = p.split('/')
             if object_hash in parts[-1]:
-                return p, f'{parts[-2]}{parts[-1]}'
+                return '/'.join(parts[1:]), f'{parts[-2]}{parts[-1]}'
         return None
 
     def exist(self, path):
