@@ -40,6 +40,7 @@ class InitCommand(CVSCommand):
         os.mkdir(self._path + '/.cvs/objects')
         os.mkdir(self._path + '/.cvs/refs')
         os.mkdir(self._path + '/.cvs/refs/heads')
+        os.mkdir(self._path + '/.cvs/refs/tags')
         with open(self._path + '/.cvs/HEAD', 'w') as f:
             f.write('ref: refs/heads/master')
         print('Initialized')
@@ -193,3 +194,31 @@ class BranchCommand(CVSCommand):
             commit = self._branch_processor.get_branch_commit(branch)
         self._files.write(branch_path, commit)
         pass
+    pass
+
+
+class CreateTagCommand(CVSCommand):
+    def __init__(self, rep, name, massage=''):
+        self._rep = rep
+        self._name = name
+        self._massage = massage
+        self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
+        self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
+        pass
+
+    def __call__(self, *args, **kwargs):
+        self._do()
+        pass
+
+    def _do(self):
+        tag_path = f'.cvs/refs/tags/{self._name}'
+        branch = self._branch_processor.get_head_branch()
+        commit = ''
+        if branch is None:
+            commit = self._branch_processor.get_head_commit()
+        else:
+            commit = self._branch_processor.get_branch_commit(branch)
+
+        self._files.write(tag_path, f'{commit}\n{self._massage}')
+        pass
+    pass
