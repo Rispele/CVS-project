@@ -39,4 +39,8 @@ class CVSBranchProcessor:
         self._files.write('.cvs/HEAD', f'obj: {commit}')
         pass
 
+    def set_head_to_branch(self, branch):
+        self._files.write('.cvs/HEAD', f'ref: refs/heads/{branch}')
+        pass
+
 

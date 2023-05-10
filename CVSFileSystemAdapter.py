@@ -33,6 +33,14 @@ class CVSFileSystemAdapter:
             f.write(content)
         pass
 
+    def mkdir(self, dir_path):
+        parts = dir_path.split('/')
+        for i in range(1, parts):
+            dir = '/'.join(parts[:i])
+            if not self.exist(dir):
+                os.mkdir(dir)
+        pass
+
     def read_file(self, path):
         path = self.get_full_path(path)
         with open(path) as f:

@@ -125,6 +125,7 @@ class CommitCommand(CVSCommand):
 
 
 class CheckoutCommand(CVSCommand):
+
     def __init__(self, rep, to):
         self._rep = rep
         self._to = to
@@ -145,15 +146,19 @@ class CheckoutCommand(CVSCommand):
                 self._branch_processor \
                     .set_head_to_commit(commit_hash)
                 self._files.load_commit(commit_hash)
+                self._branch_processor.set_head_to_branch(self._to)
         else:
-            print(commit_hash[1])
             self._branch_processor\
                 .set_head_to_commit(commit_hash[1])
             self._files.load_commit(commit_hash[1])
+            self._branch_processor.set_head_to_commit(commit_hash[1])
         pass
 
     def _get_commit(self):
-        return list(self._files.get_object_path(self._to))[0]
+        fitting_objects = list(self._files.get_object_path(self._to))
+        if len(fitting_objects) > 0:
+            return fitting_objects[0]
+        return None
 
     def _get_branch_commit(self):
         path = f'.cvs/refs/heads/{self._to}'
@@ -162,5 +167,29 @@ class CheckoutCommand(CVSCommand):
 
         return self._files.read_file(path)
 
+    pass
 
 
+class BranchCommand(CVSCommand):
+
+    def __init__(self, rep, name):
+        self._rep = rep
+        self._name = name
+        self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
+        self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
+        pass
+
+    def __call__(self, *args, **kwargs):
+        self._do()
+        pass
+
+    def _do(self):
+        branch_path = f'.cvs/refs/heads/{self._name}'
+        branch = self._branch_processor.get_head_branch()
+        commit = ''
+        if branch is None:
+            commit = self._branch_processor.get_head_commit()
+        else:
+            commit = self._branch_processor.get_branch_commit(branch)
+        self._files.write(branch_path, commit)
+        pass
