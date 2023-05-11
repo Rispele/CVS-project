@@ -1,9 +1,52 @@
-import DiffTool as dt
+import os
 
-differ = dt.DiffTool()
+import CVSFileSystemAdapter
+import Commands
 
-a = ['a', 'b', 'c', 'd', 'e']
-b = ['a', 'f', 'c', 'd', 'e']
+with open('Test/first.txt', 'w') as f:
+    f.truncate()
+    f.write('first text')
 
-for i in differ.difference(a, b):
-    print(i)
+init = Commands.InitCommand('Test')
+init()
+
+add = Commands.AddCommand('Test', '')
+add()
+
+commit = Commands.CommitCommand('Test', 'message')
+commit()
+
+input()
+
+with open('Test/first.txt', 'w') as f:
+    f.truncate()
+    f.write('first modified text')
+
+add = Commands.AddCommand('Test', '')
+add()
+
+commit = Commands.CommitCommand('Test', 'message1')
+commit()
+
+input()
+
+checkout = Commands.CheckoutCommand('Test', 'c5f65f')
+checkout()
+
+input()
+
+branch = Commands.BranchCommand('Test', 'text-branch')
+branch()
+
+input()
+
+tag = Commands.CreateTagCommand('Test', 'test-tag', 'test-tag')
+tag()
+
+input()
+
+checkout = Commands.CheckoutCommand('Test', 'master')
+checkout()
+
+# tree_builder = CVSTreeBuilder.CVSTreeBuilder('Test')
+# tree_builder.build()
