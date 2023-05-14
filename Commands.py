@@ -5,6 +5,7 @@ import CVSBranchProcessor
 import CVSIndex
 import CVSTreeBuilder
 import CVSFileSystemAdapter
+from datetime import datetime
 
 
 class CVSCommand(abc.ABC):
@@ -43,6 +44,8 @@ class InitCommand(CVSCommand):
         os.mkdir(self._path + '\\.cvs\\refs\\tags')
         with open(self._path + '\\.cvs\\HEAD', 'w') as f:
             f.write('ref: refs/heads/master')
+        with open(self._path + '\\.cvs\\LOG', 'w') as f:
+            f.write('List of changed files and time when added/changed:\n')
         print('Initialized')
         pass
 
@@ -76,11 +79,24 @@ class AddCommand(CVSCommand):
 
         h = self._blob_builder.build(content)
 
-        # indexing
+        # indexing and logging
         index = CVSIndex.CVSIndex(self._rep)
         d = index.read_index()
-        d[self._files.get_full_path(path)] = h
-        index.write_index(d)
+        if self._files.get_full_path(path) in d.keys() and not h == d[self._files.get_full_path(path)]:
+            with open(self._rep + '\\.cvs\\LOG', 'a') as f:
+                f.truncate()
+                f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: CHANGED -- {self._files.get_full_path(path)}'\
+                        f' -- {d[self._files.get_full_path(path)]} -> {h}\n')
+        elif self._files.get_full_path(path) not in d.keys():
+            d[self._files.get_full_path(path)] = h
+            index.write_index(d)
+            with open(self._rep + '\\.cvs\\LOG', 'a') as f:
+                f.truncate()
+                f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: ADDED -- {self._files.get_full_path(path)}' \
+                        f' -- {d[self._files.get_full_path(path)]}\n')
+        else:
+            d[self._files.get_full_path(path)] = h
+            index.write_index(d)
 
     @staticmethod
     def _read_file(file_path):
