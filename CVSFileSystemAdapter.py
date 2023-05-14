@@ -5,6 +5,7 @@ import queue
 class CVSFileSystemAdapter:
     def __init__(self, rep):
         self._rep = rep
+
         pass
 
     def load_commit(self, object_hash):
@@ -22,7 +23,7 @@ class CVSFileSystemAdapter:
                 for record in content.split('\n'):
                     rec_type, obj_hash, name = record.split(' ')
                     path = f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}'
-                    to_open.put((rec_type, path, f'{to_write_path}\\{name}'))
+                    to_open.put((rec_type, path, os.path.join(to_write_path, name)))
             elif obj_type == 'blob':
                 self.write(to_write_path, content)
         pass
@@ -41,9 +42,14 @@ class CVSFileSystemAdapter:
                 os.mkdir(dir)
         pass
 
+    def remove(self, path):
+        os.remove(os.path.join(self._rep, path))
+        pass
+
     def read_file(self, path):
         path = self.get_full_path(path)
-        with open(path) as f:
+
+        with open(path, errors='ignore') as f:
             content = f.read()
         return content
 
@@ -55,10 +61,11 @@ class CVSFileSystemAdapter:
             p0 = p[0]
             if p0 == self._rep:
                 for f in p[2]:
-                    yield f'{self._rep}\\{f}'
+                    yield f
             else:
+                p0 = p0[(p0.index('\\') + 1):]
                 for f in p[2]:
-                    yield f'{p0}\\{f}'
+                    yield os.path.join(p0, f)
 
     def get_object_path(self, object_hash):
         for p in self.get_all_filepaths(f'.cvs\\objects', exclude_cvs=False):
@@ -78,8 +85,6 @@ class CVSFileSystemAdapter:
         return os.path.isdir(f'{self._rep}\\{path}')
 
     def get_full_path(self, path):
-        if path == '':
-            return self._rep
-        return f'{path}'
+        return os.path.join(self._rep, path)
 
     pass

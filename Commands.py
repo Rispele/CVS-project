@@ -67,11 +67,11 @@ class AddCommand(CVSCommand):
             print(f'File or directory \'{self._path}\' does not exist')
         elif self._files.is_file(self._path):
             self._add_file(self._path)
-            print(f'File \'{self._path}\' was added')
+            print(f'File \'{self._files.get_full_path(self._path)}\' was added')
         else:
             for p in self._files.get_all_filepaths(self._path):
                 self._add_file(p)
-                print(f'File \'{p}\' was added')
+                print(f'File \'{self._files.get_full_path(p)}\' was added')
             print(f'Directory \'{self._files.get_full_path(self._path)}\' and all files in it were added')
 
     def _add_file(self, path):
@@ -137,7 +137,7 @@ class CommitCommand(CVSCommand):
                  f'\n' \
                  f'{self._message}'
         h = self._blob_builder.build(commit)
-        print(f'Commit \'{tree}\' has been deployed with message: \'{self._message}\'')
+        print(f'Commit \'{h}\' has been deployed with message: \'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)
             pass
@@ -166,13 +166,9 @@ class CheckoutCommand(CVSCommand):
             if commit_hash is None:
                 raise Exception(f'Unable to find {commit_hash}')
             else:
-                self._branch_processor \
-                    .set_head_to_commit(commit_hash)
                 self._files.load_commit(commit_hash)
                 self._branch_processor.set_head_to_branch(self._to)
         else:
-            self._branch_processor\
-                .set_head_to_commit(commit_hash[1])
             self._files.load_commit(commit_hash[1])
             self._branch_processor.set_head_to_commit(commit_hash[1])
         pass
@@ -216,6 +212,13 @@ class BranchCommand(CVSCommand):
             commit = self._branch_processor.get_branch_commit(branch)
         self._files.write(branch_path, commit)
         print(f'Branch {self._name} has been successfully built')
+        pass
+
+    def remove_branch(self):
+        if self._branch_processor.get_head_branch() == self._name:
+            commit = self._branch_processor.get_branch_commit(self._name)
+            self._branch_processor.set_head_to_commit(commit)
+        self._files.remove(f'.cvs/refs/heads/{self._name}')
         pass
     pass
 
