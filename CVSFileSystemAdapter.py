@@ -60,13 +60,15 @@ class CVSFileSystemAdapter:
                 continue
 
             p0 = p[0]
-            if p0 == self._rep:
-                for f in p[2]:
-                    yield f
-            else:
-                p0 = p0[(p0.index('\\') + 1):]
-                for f in p[2]:
-                    yield os.path.join(p0, f)
+            for f in p[2]:
+                yield os.path.join(p0, f).replace(f'{self._rep}\\', '')
+            # if p0 == self._rep:
+            #     for f in p[2]:
+            #         yield f
+            # else:
+            #     p0 = p0[(p0.index('\\') + 1):]
+            #     for f in p[2]:
+            #         yield os.path.join(p0, f)
 
     def get_object_path(self, object_hash):
         for p in self.get_all_filepaths(f'.cvs\\objects', exclude_cvs=False):
