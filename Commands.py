@@ -36,12 +36,12 @@ class InitCommand(CVSCommand):
             print('Already exist')
             return
 
-        os.mkdir(self._path + '/.cvs')
-        os.mkdir(self._path + '/.cvs/objects')
-        os.mkdir(self._path + '/.cvs/refs')
-        os.mkdir(self._path + '/.cvs/refs/heads')
-        os.mkdir(self._path + '/.cvs/refs/tags')
-        with open(self._path + '/.cvs/HEAD', 'w') as f:
+        os.mkdir(self._path + '\\.cvs')
+        os.mkdir(self._path + '\\.cvs\\objects')
+        os.mkdir(self._path + '\\.cvs\\refs')
+        os.mkdir(self._path + '\\.cvs\\refs\\heads')
+        os.mkdir(self._path + '\\.cvs\\refs\\tags')
+        with open(self._path + '\\.cvs\\HEAD', 'w') as f:
             f.write('ref: refs/heads/master')
         print('Initialized')
         pass
@@ -60,11 +60,16 @@ class AddCommand(CVSCommand):
         self._do()
 
     def _do(self):
-        if self._files.is_file(self._path):
-            self._add_file(self._files.get_full_path(self._path))
+        if not self._files.is_file(self._path) and not self._files.is_dir(self._path):
+            print(f'File or directory \'{self._path}\' does not exist')
+        elif self._files.is_file(self._path):
+            self._add_file(self._path)
+            print(f'File \'{self._path}\' was added')
         else:
             for p in self._files.get_all_filepaths(self._path):
                 self._add_file(p)
+                print(f'File \'{p}\' was added')
+            print(f'Directory \'{self._files.get_full_path(self._path)}\' and all files in it were added')
 
     def _add_file(self, path):
         content = self._files.read_file(path)
@@ -116,6 +121,7 @@ class CommitCommand(CVSCommand):
                  f'\n' \
                  f'{self._message}'
         h = self._blob_builder.build(commit)
+        print(f'Commit \'{tree}\' has been deployed with message: \'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)
             pass
@@ -162,7 +168,7 @@ class CheckoutCommand(CVSCommand):
         return None
 
     def _get_branch_commit(self):
-        path = f'.cvs/refs/heads/{self._to}'
+        path = f'.cvs\\refs\\heads\\{self._to}'
         if not self._files.exist(path):
             return None
 
@@ -185,7 +191,7 @@ class BranchCommand(CVSCommand):
         pass
 
     def _do(self):
-        branch_path = f'.cvs/refs/heads/{self._name}'
+        branch_path = f'.cvs\\refs\\heads\\{self._name}'
         branch = self._branch_processor.get_head_branch()
         commit = ''
         if branch is None:
@@ -193,15 +199,16 @@ class BranchCommand(CVSCommand):
         else:
             commit = self._branch_processor.get_branch_commit(branch)
         self._files.write(branch_path, commit)
+        print(f'Branch {self._name} has been successfully built')
         pass
     pass
 
 
 class CreateTagCommand(CVSCommand):
-    def __init__(self, rep, name, massage=''):
+    def __init__(self, rep, name, message=''):
         self._rep = rep
         self._name = name
-        self._massage = massage
+        self._message = message
         self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
         self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
         pass
@@ -211,7 +218,7 @@ class CreateTagCommand(CVSCommand):
         pass
 
     def _do(self):
-        tag_path = f'.cvs/refs/tags/{self._name}'
+        tag_path = f'.cvs\\refs\\tags\\{self._name}'
         branch = self._branch_processor.get_head_branch()
         commit = ''
         if branch is None:
@@ -219,6 +226,7 @@ class CreateTagCommand(CVSCommand):
         else:
             commit = self._branch_processor.get_branch_commit(branch)
 
-        self._files.write(tag_path, f'{commit}\n{self._massage}')
+        self._files.write(tag_path, f'{commit}\n{self._message}')
+        print(f'Tag {self._name} has been successfully added with message: \'{self._message}\'')
         pass
     pass
