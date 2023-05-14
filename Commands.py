@@ -154,6 +154,7 @@ class CheckoutCommand(CVSCommand):
         self._to = to
         self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
         self._branch_processor = CVSBranchProcessor.CVSBranchProcessor(rep)
+        self._index = CVSIndex.CVSIndex(rep)
         pass
 
     def __call__(self, *args, **kwargs):
@@ -166,11 +167,19 @@ class CheckoutCommand(CVSCommand):
             if commit_hash is None:
                 raise Exception(f'Unable to find {commit_hash}')
             else:
-                self._files.load_commit(commit_hash)
+                indexed = self._files.load_commit(commit_hash)
                 self._branch_processor.set_head_to_branch(self._to)
         else:
-            self._files.load_commit(commit_hash[1])
+            indexed = self._files.load_commit(commit_hash[1])
             self._branch_processor.set_head_to_commit(commit_hash[1])
+
+        #reload index
+        cur_index = self._index.read_index()
+        for key, value in cur_index.items():
+            if key in indexed.keys() and cur_index[key] == indexed[key]:
+                continue
+            os.remove(key)
+        self._index.write_index(indexed)
         pass
 
     def _get_commit(self):

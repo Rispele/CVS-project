@@ -10,22 +10,23 @@ class CVSFileSystemAdapter:
 
     def load_commit(self, object_hash):
         to_open = queue.Queue()
-        to_open.put(('commit', f'.cvs\\objects\\{object_hash[:2]}\\{object_hash[2:]}', ''))
+        to_open.put(('commit', object_hash, ''))
+        indexed = {}
         while not to_open.empty():
-            obj_type, path, to_write_path = to_open.get()
-            content = self.read_file(path)
+            obj_type, obj_hash, to_write_path = to_open.get()
+            content = self.read_file(f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}')
             if obj_type == 'commit':
                 obj_hash = content.split('\n')[0].split(' ')[1]
-                path = f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}'
-                to_open.put(('tree', path, ''))
+                to_open.put(('tree', obj_hash, ''))
                 continue
             elif obj_type == 'tree':
                 for record in content.split('\n'):
                     rec_type, obj_hash, name = record.split(' ')
-                    path = f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}'
-                    to_open.put((rec_type, path, os.path.join(to_write_path, name)))
+                    to_open.put((rec_type, obj_hash, os.path.join(to_write_path, name)))
             elif obj_type == 'blob':
                 self.write(to_write_path, content)
+                indexed[self.get_full_path(to_write_path)] = obj_hash
+        return indexed
         pass
 
     def write(self, path, content):
