@@ -125,9 +125,12 @@ class CommitCommand(CVSCommand):
         self._do()
 
     def _do(self):
+        changes = []
         tree, not_found = self._tree_builder.build()
         if len(not_found) != 0:
             print(f'Removed files: {list(not_found)}')
+        for item in list(not_found):
+            changes.append(f'File {item} was removed')
 
         branch = self._branch_processor.get_head_branch()
         if branch is None:
@@ -150,15 +153,20 @@ class CommitCommand(CVSCommand):
                 previous_indexes = text[text.index(parent):]
             index = CVSIndex.CVSIndex(self._rep)
             d = index.read_index()
-            for hash in d.keys():
-                if parent is not None and d[hash] not in previous_indexes:
-                    if hash in previous_indexes:
-                        print(f'{hash} changed')
+            for file in d.keys():
+                if parent is not None and d[file] not in previous_indexes:
+                    if file in previous_indexes:
+                        print(f'{file} changed')
+                        changes.append(f'File {file} changed')
                     else:
-                        print(f'{hash} added')
-                f.write(f'{hash} {d[hash]}\n')
-
-
+                        print(f'{file} added')
+                        changes.append(f'File {file} added')
+                if parent is None:
+                    print(f'{file} added')
+                    changes.append(f'File {file} added')
+                f.write(f'{file} {d[file]}\n')
+            for record in changes:
+                f.write(f'-> {record}\n')
         print(f'Commit \'{h}\' has been deployed with message: \'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)

@@ -37,7 +37,7 @@ while True:
             with open(current_path + '\\.cvs\\COMMITLOG', 'r') as f:
                 text = f.read().split('\n')
                 for line in text:
-                    if '-- message' in line:
+                    if '-- message' in line or '->' in line:
                         print(line)
         else:
             print(f'Unknown parameter \'{command_tokens[1]}\'')
