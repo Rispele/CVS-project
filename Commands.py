@@ -46,6 +46,8 @@ class InitCommand(CVSCommand):
             f.write('ref: refs/heads/master')
         with open(self._path + '\\.cvs\\LOG', 'w') as f:
             f.write('List of changed files and time when added/changed:\n')
+        with open(self._path + '\\.cvs\\COMMITLOG', 'w') as f:
+            f.write('Project commits:\n')
         print('Initialized')
         pass
 
@@ -71,7 +73,6 @@ class AddCommand(CVSCommand):
         else:
             for p in self._files.get_all_filepaths(self._path):
                 self._add_file(p)
-                print(f'File \'{self._files.get_full_path(p)}\' was added')
             print(f'Directory \'{self._files.get_full_path(self._path)}\' and all files in it were added')
 
     def _add_file(self, path):
@@ -87,11 +88,14 @@ class AddCommand(CVSCommand):
                 f.truncate()
                 f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: CHANGED -- {self._files.get_full_path(path)}'\
                         f' -- {d[self._files.get_full_path(path)]} -> {h}\n')
+                d[self._files.get_full_path(path)] = h
+                index.write_index(d)
         elif self._files.get_full_path(path) not in d.keys():
             d[self._files.get_full_path(path)] = h
             index.write_index(d)
             with open(self._rep + '\\.cvs\\LOG', 'a') as f:
                 f.truncate()
+                print(f'File \'{self._files.get_full_path(path)}\' was added')
                 f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: ADDED -- {self._files.get_full_path(path)}' \
                         f' -- {d[self._files.get_full_path(path)]}\n')
         else:
@@ -123,20 +127,38 @@ class CommitCommand(CVSCommand):
     def _do(self):
         tree, not_found = self._tree_builder.build()
         if len(not_found) != 0:
-            print(f'Unable to find files: {list(not_found)}')
-            return
+            print(f'Removed files: {list(not_found)}')
 
         branch = self._branch_processor.get_head_branch()
         if branch is None:
             parent = self._branch_processor.get_head_commit()
         else:
             parent = self._branch_processor.get_branch_commit(branch)
-
         commit = f'tree {tree}\n' \
                  f'parent {parent}\n' \
                  f'\n' \
                  f'{self._message}'
         h = self._blob_builder.build(commit)
+
+        with open(self._rep + '\\.cvs\\COMMITLOG', 'r') as f:
+            text = f.read()
+
+        with open(self._rep + '\\.cvs\\COMMITLOG', 'a') as f:
+            f.truncate()
+            f.write(f'Commit {h} -- {datetime.now().strftime("%d/%m/%y %H:%M:%S")} -- message: \'{self._message}\':\n')
+            if parent is not None:
+                previous_indexes = text[text.index(parent):]
+            index = CVSIndex.CVSIndex(self._rep)
+            d = index.read_index()
+            for hash in d.keys():
+                if parent is not None and d[hash] not in previous_indexes:
+                    if hash in previous_indexes:
+                        print(f'{hash} changed')
+                    else:
+                        print(f'{hash} added')
+                f.write(f'{hash} {d[hash]}\n')
+
+
         print(f'Commit \'{h}\' has been deployed with message: \'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)
