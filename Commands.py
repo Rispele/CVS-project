@@ -34,7 +34,7 @@ class InitCommand(CVSCommand):
 
     def _do(self):
         if os.path.exists(self._path + '/.cvs'):
-            print('Already exist')
+            print('>> Already exist')
             return
 
         os.mkdir(self._path + '\\.cvs')
@@ -48,7 +48,7 @@ class InitCommand(CVSCommand):
             f.write('List of changed files and time when added/changed:\n')
         with open(self._path + '\\.cvs\\COMMITLOG', 'w') as f:
             f.write('Project commits:\n')
-        print('Initialized')
+        print('>> Repo initialized')
         pass
 
     pass
@@ -66,18 +66,15 @@ class AddCommand(CVSCommand):
 
     def _do(self):
         if not self._files.is_file(self._path) and not self._files.is_dir(self._path):
-            print(f'File or directory \'{self._path}\' does not exist')
+            print(f'>> File or directory \'{self._path}\' does not exist')
         elif self._files.is_file(self._path):
             self._add_file(self._path)
-            print(f'File \'{self._files.get_full_path(self._path)}\' was added')
         else:
             for p in self._files.get_all_filepaths(self._path):
                 self._add_file(p)
-            print(f'Directory \'{self._files.get_full_path(self._path)}\' and all files in it were added')
 
     def _add_file(self, path):
         content = self._files.read_file(path)
-
         h = self._blob_builder.build(content)
 
         # indexing and logging
@@ -95,7 +92,7 @@ class AddCommand(CVSCommand):
             index.write_index(d)
             with open(self._rep + '\\.cvs\\LOG', 'a') as f:
                 f.truncate()
-                print(f'File \'{self._files.get_full_path(path)}\' was added')
+                print(f'>> File \'{self._files.get_full_path(path)}\' was added')
                 f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: ADDED -- {self._files.get_full_path(path)}' \
                         f' -- {d[self._files.get_full_path(path)]}\n')
         else:
@@ -128,7 +125,7 @@ class CommitCommand(CVSCommand):
         changes = []
         tree, not_found = self._tree_builder.build()
         if len(not_found) != 0:
-            print(f'Removed files: {list(not_found)}')
+            print(f'>> Removed files: {list(not_found)}')
         for item in list(not_found):
             changes.append(f'File {item} was removed')
 
@@ -156,18 +153,18 @@ class CommitCommand(CVSCommand):
             for file in d.keys():
                 if parent is not None and d[file] not in previous_indexes:
                     if file in previous_indexes:
-                        print(f'{file} changed')
+                        print(f'>> Commit log updated: {file} changed')
                         changes.append(f'File {file} changed')
                     else:
-                        print(f'{file} added')
+                        print(f'>> Commit log updated: {file} added')
                         changes.append(f'File {file} added')
                 if parent is None:
-                    print(f'{file} added')
+                    print(f'>> Commit log updated: {file} added')
                     changes.append(f'File {file} added')
                 f.write(f'{file} {d[file]}\n')
             for record in changes:
                 f.write(f'-> {record}\n')
-        print(f'Commit \'{h}\' has been deployed with message: \'{self._message}\'')
+        print(f'>> Commit \'{h}\' has been deployed with message: \'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)
             pass
@@ -250,7 +247,7 @@ class BranchCommand(CVSCommand):
         else:
             commit = self._branch_processor.get_branch_commit(branch)
         self._files.write(branch_path, commit)
-        print(f'Branch {self._name} has been successfully built')
+        print(f'>> Branch {self._name} has been successfully built')
         pass
 
     def remove_branch(self):
@@ -285,6 +282,6 @@ class CreateTagCommand(CVSCommand):
             commit = self._branch_processor.get_branch_commit(branch)
 
         self._files.write(tag_path, f'{commit}\n{self._message}')
-        print(f'Tag {self._name} has been successfully added with message: \'{self._message}\'')
+        print(f'>> Tag {self._name} has been successfully added with message: \'{self._message}\'')
         pass
     pass
