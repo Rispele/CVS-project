@@ -7,9 +7,13 @@ from CVSFileSystemAdapter import CVSFileSystemAdapter
 
 
 def extract_message(command):
+    if command.find('\'') == -1:
+        print(">> Message should be rounded with \' (example: \'message\')")
+        return None
     message_start = command.index('\'') + 1
     message_end = (command[message_start:]).index('\'') + message_start
     return command[message_start:message_end]
+
 
 current_path = str(os.getcwd())
 branch_processor = CVSBranchProcessor(current_path)
@@ -46,6 +50,8 @@ while True:
             commit()
         elif ' \'' in command and command[-1] == '\'':
             message = extract_message(command)
+            if message is None:
+                continue
             commit = Commands.CommitCommand(current_path, message)
             commit()
         elif command_tokens[1] == 'show':
@@ -74,10 +80,11 @@ while True:
             else:
                 for branch in branch_list:
                     print(branch)
+            continue
         branch = Commands.BranchCommand(current_path, command_tokens[1])
         branch()
     elif command_tokens[0] == 'tag':
-        if len(command_tokens) == 2 and command_tokens[1] == 'show':
+        if command_tokens[1] == 'show':
             tag_paths = files.get_all_filepaths(
                 os.path.join('.cvs', 'refs', 'tags'),
                 False)
@@ -85,17 +92,20 @@ while True:
             for path in tag_paths:
                 tags.append(os.path.split(path)[-1])
             if len(tags) == 0:
-                print("No tags found")
+                print(">> No tags found")
             else:
                 for tag in tags:
                     print(tag)
-        elif len(command_tokens) == 1:
-            tag_name = command_tokens[1]
-            message = extract_message(command)
-            tag = Commands.CreateTagCommand(current_path, tag_name, message)
-            tag()
-        else:
-            print(f'Unknown parameter \'{command_tokens[1]}\'')
+            continue
+        elif len(command_tokens) != 3:
+            print('>> Tag creation command receive 2 params '
+                  '(tag \'name\' \'message\')')
+        tag_name = command_tokens[1]
+        message = extract_message(command)
+        if message is None:
+            continue
+        tag = Commands.CreateTagCommand(current_path, tag_name, message)
+        tag()
     else:
         print(f'>> Unknown command {command_tokens[0]}')
         continue
