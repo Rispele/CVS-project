@@ -200,7 +200,7 @@ class CheckoutCommand(CVSCommand):
             indexed = self._files.load_commit(commit_hash[1])
             self._branch_processor.set_head_to_commit(commit_hash[1])
 
-        #reload index
+        # reload index
         cur_index = self._index.read_index()
         for key, value in cur_index.items():
             if key in indexed.keys() and cur_index[key] == indexed[key]:

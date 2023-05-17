@@ -90,12 +90,13 @@ while True:
                 False)
             tags = []
             for path in tag_paths:
-                tags.append(os.path.split(path)[-1])
+                tag_hash, message = files.read_file(path).split()
+                tags.append((os.path.split(path)[-1], message))
             if len(tags) == 0:
                 print(">> No tags found")
             else:
                 for tag in tags:
-                    print(tag)
+                    print(f'{tag[0]} -- message -- {tag[1]}')
             continue
         elif len(command_tokens) != 3:
             print('>> Tag creation command receive 2 params '
