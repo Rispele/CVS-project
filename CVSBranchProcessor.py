@@ -7,6 +7,14 @@ class CVSBranchProcessor:
         self._rep = rep
         self._files = CVSFileSystemAdapter.CVSFileSystemAdapter(rep)
 
+    def get_branch_list(self):
+        branches_path = self._files.get_all_filepaths(
+            os.path.join('.cvs', 'refs', 'heads'),
+            False)
+        for path in branches_path:
+            yield os.path.split(path)[-1]
+        pass
+
     def get_head_branch(self):
         content = self._files.read_file('.cvs\\HEAD')
         head_type, head_pointer = content.split(': ')

@@ -1,11 +1,12 @@
 import os
 import queue
 
+import CVSBranchProcessor
+
 
 class CVSFileSystemAdapter:
     def __init__(self, rep):
         self._rep = rep
-
         pass
 
     def load_commit(self, object_hash):
