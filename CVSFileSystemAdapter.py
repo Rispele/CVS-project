@@ -72,9 +72,12 @@ class CVSFileSystemAdapter:
             #         yield os.path.join(p0, f)
 
     def get_object_path(self, object_hash):
-        for p in self.get_all_filepaths(f'.cvs\\objects', exclude_cvs=False):
+        for p in self.get_all_filepaths(os.path.join('.cvs',
+                                                     'objects',
+                                                     object_hash[:2]),
+                                        exclude_cvs=False):
             parts = p.split('\\')
-            if object_hash in parts[-1]:
+            if object_hash[2:] in parts[-1]:
                 yield p, f'{parts[-2]}{parts[-1]}'
         return None
 

@@ -16,6 +16,7 @@ def extract_message(command):
 
 
 current_path = str(os.getcwd())
+#current_path = 'D:\\UrFU\\CVS-tests\\Test'
 branch_processor = CVSBranchProcessor(current_path)
 files = CVSFileSystemAdapter(current_path)
 
@@ -70,8 +71,9 @@ while True:
         checkout = Commands.CheckoutCommand(current_path, to)
         checkout()
     elif command_tokens[0] == 'branch':
-        if len(command_tokens) != 2:
-            print('>> Command \'branch\' must have 1 argument (branch name)')
+        if len(command_tokens) > 3 or len(command_tokens) < 2:
+            print('>> Command \'branch\' must have 1 argument (branch name) or (show)\n'
+                  '>> or 2 arguments (delete) (branch name)')
             continue
         if command_tokens[1] == 'show':
             branch_list = list(branch_processor.get_branch_list())
@@ -80,6 +82,10 @@ while True:
             else:
                 for branch in branch_list:
                     print(branch)
+            continue
+        elif command_tokens[1] == 'delete':
+            branch = Commands.BranchCommand(current_path, command_tokens[2])
+            branch.remove_branch()
             continue
         branch = Commands.BranchCommand(current_path, command_tokens[1])
         branch()
@@ -96,7 +102,12 @@ while True:
                 print(">> No tags found")
             else:
                 for tag in tags:
-                    print(f'{tag[0]} -- message -- {tag[1]}')
+                    print(f'{tag[0]} message: \'{tag[1]}\'')
+            continue
+        elif command_tokens[1] == 'delete':
+            tag_name = command_tokens[2]
+            Commands.CreateTagCommand(current_path, tag_name, '').remove_tag()
+            print(f'>> Tag {tag_name} was successfully deleted  ')
             continue
         elif len(command_tokens) != 3:
             print('>> Tag creation command receive 2 params '

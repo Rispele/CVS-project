@@ -193,12 +193,9 @@ class CheckoutCommand(CVSCommand):
             commit_hash = self._get_branch_commit()
             if commit_hash is None:
                 raise Exception(f'Unable to find {commit_hash}')
-            else:
-                indexed = self._files.load_commit(commit_hash)
-                self._branch_processor.set_head_to_branch(self._to)
-        else:
-            indexed = self._files.load_commit(commit_hash[1])
-            self._branch_processor.set_head_to_commit(commit_hash[1])
+
+        indexed = self._files.load_commit(commit_hash)
+        self._branch_processor.set_head_to_commit(commit_hash)
 
         # reload index
         cur_index = self._index.read_index()
@@ -210,10 +207,11 @@ class CheckoutCommand(CVSCommand):
         pass
 
     def _get_commit(self):
-        fitting_objects = list(self._files.get_object_path(self._to))
-        if len(fitting_objects) > 0:
-            return fitting_objects[0]
-        return None
+        fittings = list(self._files.get_object_path(self._to))
+        if len(fittings) == 0:
+            return None
+
+        return fittings[0][1]
 
     def _get_branch_commit(self):
         path = f'.cvs\\refs\\heads\\{self._to}'
@@ -284,4 +282,11 @@ class CreateTagCommand(CVSCommand):
         self._files.write(tag_path, f'{commit}\n{self._message}')
         print(f'>> Tag {self._name} has been successfully added with message: \'{self._message}\'')
         pass
+
+    def remove_tag(self):
+        path = os.path.join('.cvs', 'refs', 'tags', self._name)
+        if not self._files.exist(path):
+            print(f'>> Unable to find tag: {self._name}')
+            return
+        self._files.remove(path)
     pass
