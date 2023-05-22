@@ -15,7 +15,8 @@ class CVSFileSystemAdapter:
         indexed = {}
         while not to_open.empty():
             obj_type, obj_hash, to_write_path = to_open.get()
-            content = self.read_file(f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}')
+            content = self.read_file(
+                f'.cvs\\objects\\{obj_hash[:2]}\\{obj_hash[2:]}')
             if obj_type == 'commit':
                 obj_hash = content.split('\n')[0].split(' ')[1]
                 to_open.put(('tree', obj_hash, ''))
@@ -23,7 +24,8 @@ class CVSFileSystemAdapter:
             elif obj_type == 'tree':
                 for record in content.split('\n'):
                     rec_type, obj_hash, name = record.split(' ')
-                    to_open.put((rec_type, obj_hash, os.path.join(to_write_path, name)))
+                    to_open.put((rec_type, obj_hash,
+                                 os.path.join(to_write_path, name)))
             elif obj_type == 'blob':
                 self.write(to_write_path, content)
                 indexed[self.get_full_path(to_write_path)] = obj_hash

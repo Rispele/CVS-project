@@ -65,7 +65,8 @@ class AddCommand(CVSCommand):
         self._do()
 
     def _do(self):
-        if not self._files.is_file(self._path) and not self._files.is_dir(self._path):
+        if not self._files.is_file(self._path) and not self._files.is_dir(
+                self._path):
             print(f'>> File or directory \'{self._path}\' does not exist')
         elif self._files.is_file(self._path):
             self._add_file(self._path)
@@ -80,11 +81,14 @@ class AddCommand(CVSCommand):
         # indexing and logging
         index = CVSIndex.CVSIndex(self._rep)
         d = index.read_index()
-        if self._files.get_full_path(path) in d.keys() and not h == d[self._files.get_full_path(path)]:
+        if self._files.get_full_path(path) in d.keys() and \
+                not h == d[self._files.get_full_path(path)]:
             with open(self._rep + '\\.cvs\\LOG', 'a') as f:
                 f.truncate()
-                f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: CHANGED -- {self._files.get_full_path(path)}'\
-                        f' -- {d[self._files.get_full_path(path)]} -> {h}\n')
+                f.write(
+                    f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
+                    f'CHANGED -- {self._files.get_full_path(path)}'
+                    f' -- {d[self._files.get_full_path(path)]} -> {h}\n')
                 d[self._files.get_full_path(path)] = h
                 index.write_index(d)
         elif self._files.get_full_path(path) not in d.keys():
@@ -92,9 +96,12 @@ class AddCommand(CVSCommand):
             index.write_index(d)
             with open(self._rep + '\\.cvs\\LOG', 'a') as f:
                 f.truncate()
-                print(f'>> File \'{self._files.get_full_path(path)}\' was added')
-                f.write(f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: ADDED -- {self._files.get_full_path(path)}' \
-                        f' -- {d[self._files.get_full_path(path)]}\n')
+                print(
+                    f'>> File \'{self._files.get_full_path(path)}\' was added')
+                f.write(
+                    f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
+                    f'ADDED -- {self._files.get_full_path(path)}'
+                    f' -- {d[self._files.get_full_path(path)]}\n')
         else:
             d[self._files.get_full_path(path)] = h
             index.write_index(d)
@@ -145,7 +152,9 @@ class CommitCommand(CVSCommand):
 
         with open(self._rep + '\\.cvs\\COMMITLOG', 'a') as f:
             f.truncate()
-            f.write(f'Commit {h} -- {datetime.now().strftime("%d/%m/%y %H:%M:%S")} -- message: \'{self._message}\':\n')
+            f.write(
+                f'Commit {h} -- {datetime.now().strftime("%d/%m/%y %H:%M:%S")}'
+                f' -- message: \'{self._message}\':\n')
             if parent is not None:
                 previous_indexes = text[text.index(parent):]
             index = CVSIndex.CVSIndex(self._rep)
@@ -164,7 +173,9 @@ class CommitCommand(CVSCommand):
                 f.write(f'{file} {d[file]}\n')
             for record in changes:
                 f.write(f'-> {record}\n')
-        print(f'>> Commit \'{h}\' has been deployed with message: \'{self._message}\'')
+        print(
+            f'>> Commit \'{h}\' has been deployed with message: '
+            f'\'{self._message}\'')
         if branch is None:
             self._branch_processor.set_head_to_commit(h)
             pass
@@ -233,6 +244,7 @@ class CheckoutCommand(CVSCommand):
             return None
 
         return self._files.read_file(path).split()[0]
+
     pass
 
 
@@ -267,6 +279,7 @@ class BranchCommand(CVSCommand):
             self._branch_processor.set_head_to_commit(commit)
         self._files.remove(f'.cvs/refs/heads/{self._name}')
         pass
+
     pass
 
 
@@ -293,7 +306,8 @@ class CreateTagCommand(CVSCommand):
             commit = self._branch_processor.get_branch_commit(branch)
 
         self._files.write(tag_path, f'{commit}\n{self._message}')
-        print(f'>> Tag {self._name} has been successfully added with message: \'{self._message}\'')
+        print(
+            f'>> Tag {self._name} has been successfully added with message: \'{self._message}\'')
         pass
 
     def remove_tag(self):
@@ -302,4 +316,5 @@ class CreateTagCommand(CVSCommand):
             print(f'>> Unable to find tag: {self._name}')
             return
         self._files.remove(path)
+
     pass

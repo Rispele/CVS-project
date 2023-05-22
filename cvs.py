@@ -15,8 +15,7 @@ def extract_message(command):
     return command[message_start:message_end]
 
 
-#current_path = str(os.getcwd())
-current_path = 'D:\\UrFU\\CVS-tests\\Test'
+current_path = str(os.getcwd())
 branch_processor = CVSBranchProcessor(current_path)
 files = CVSFileSystemAdapter(current_path)
 
@@ -26,8 +25,6 @@ while True:
     if len(command_tokens) == 0:
         continue
 
-
-    #current_path = 'C:\\Users\\Ilya\\Desktop\\Новая папка (3)\\Новая папка'
     if command_tokens[0] == 'init':
         if len(command_tokens) > 1:
             print('>> Command \'init\' must have no arguments')
@@ -72,8 +69,10 @@ while True:
         checkout()
     elif command_tokens[0] == 'branch':
         if len(command_tokens) > 3 or len(command_tokens) < 2:
-            print('>> Command \'branch\' must have 1 argument (branch name) or (show)\n'
-                  '>> or 2 arguments (delete) (branch name)')
+            print(
+                '>> Command \'branch\' must have 1 argument '
+                '(branch name) or (show)\n'
+                '>> or 2 arguments (delete) (branch name)')
             continue
         if command_tokens[1] == 'show':
             branch_list = list(branch_processor.get_branch_list())
@@ -121,53 +120,3 @@ while True:
     else:
         print(f'>> Unknown command {command_tokens[0]}')
         continue
-
-
-
-# with open('Test/first.txt', 'w') as f:
-#     f.truncate()
-#     f.write('first text')
-
-# init = Commands.InitCommand('Test')
-# init()
-#
-# add = Commands.AddCommand('Test', '')
-# add()
-#
-# commit = Commands.CommitCommand('Test', 'message')
-# commit()
-#
-# input()
-#
-# with open('Test/first.txt', 'w') as f:
-#     f.truncate()
-#     f.write('first modified text')
-#
-# add = Commands.AddCommand('Test', '')
-# add()
-#
-# commit = Commands.CommitCommand('Test', 'message1')
-# commit()
-#
-# input()
-#
-# checkout = Commands.CheckoutCommand('Test', 'c5f65f')
-# checkout()
-#
-# input()
-#
-# branch = Commands.BranchCommand('Test', 'text-branch')
-# branch()
-#
-# input()
-#
-# tag = Commands.CreateTagCommand('Test', 'test-tag', 'test-tag')
-# tag()
-#
-# input()
-#
-# checkout = Commands.CheckoutCommand('Test', 'master')
-# checkout()
-#
-# # tree_builder = CVSTreeBuilder.CVSTreeBuilder('Test')
-# # tree_builder.build()

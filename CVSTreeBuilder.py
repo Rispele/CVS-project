@@ -44,8 +44,3 @@ class CVSTreeBuilder:
             content = content[0:-1]
 
         return self._blob_builder.build(content), False
-
-
-
-
-
