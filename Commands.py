@@ -192,10 +192,17 @@ class CheckoutCommand(CVSCommand):
         if commit_hash is None:
             commit_hash = self._get_branch_commit()
             if commit_hash is None:
-                raise Exception(f'Unable to find {commit_hash}')
+                commit_hash = self._get_tag_commit()
+                if commit_hash is None:
+                    raise Exception(f'Unable to find {commit_hash}')
+                else:
+                    self._branch_processor.set_head_to_commit(commit_hash)
+            else:
+                self._branch_processor.set_head_to_branch(self._to)
+        else:
+            self._branch_processor.set_head_to_commit(commit_hash)
 
         indexed = self._files.load_commit(commit_hash)
-        self._branch_processor.set_head_to_commit(commit_hash)
 
         # reload index
         cur_index = self._index.read_index()
@@ -220,6 +227,12 @@ class CheckoutCommand(CVSCommand):
 
         return self._files.read_file(path)
 
+    def _get_tag_commit(self):
+        path = f'.cvs\\refs\\tags\\{self._to}'
+        if not self._files.exist(path):
+            return None
+
+        return self._files.read_file(path).split()[0]
     pass
 
 
