@@ -32,13 +32,14 @@ class CVSFileSystemAdapter:
 
     def write(self, path, content):
         path = self.get_full_path(path)
+        self.mkdir(path.split()[0])
         with open(path, 'w') as f:
             f.write(content)
         pass
 
     def mkdir(self, dir_path):
         parts = dir_path.split('\\')
-        for i in range(1, parts):
+        for i in range(1, len(parts)):
             dir = '\\'.join(parts[:i])
             if not self.exist(dir):
                 os.mkdir(dir)

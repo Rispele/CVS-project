@@ -15,8 +15,8 @@ def extract_message(command):
     return command[message_start:message_end]
 
 
-current_path = str(os.getcwd())
-#current_path = 'D:\\UrFU\\CVS-tests\\Test'
+#current_path = str(os.getcwd())
+current_path = 'D:\\UrFU\\CVS-tests\\Test'
 branch_processor = CVSBranchProcessor(current_path)
 files = CVSFileSystemAdapter(current_path)
 
