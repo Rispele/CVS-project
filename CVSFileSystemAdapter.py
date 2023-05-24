@@ -42,9 +42,9 @@ class CVSFileSystemAdapter:
     def mkdir(self, dir_path):
         parts = dir_path.split('\\')
         for i in range(1, len(parts)):
-            dir = '\\'.join(parts[:i])
-            if not self.exist(dir):
-                os.mkdir(dir)
+            directory = '\\'.join(parts[:i])
+            if not self.exist(directory):
+                os.mkdir(directory)
         pass
 
     def remove(self, path):
@@ -59,22 +59,22 @@ class CVSFileSystemAdapter:
         return content
 
     def get_all_filepaths(self, path, exclude_cvs=True):
-        for p in os.walk(self.get_full_path(path)):
-            if ('.cvs' in p[0]) and exclude_cvs:
+        for path in os.walk(self.get_full_path(path)):
+            if ('.cvs' in path[0]) and exclude_cvs:
                 continue
 
-            p0 = p[0]
-            for f in p[2]:
-                yield os.path.join(p0, f).replace(f'{self._rep}\\', '')
+            path_part_0 = path[0]
+            for f in path[2]:
+                yield os.path.join(path_part_0, f).replace(f'{self._rep}\\', '')
 
     def get_object_path(self, object_hash):
-        for p in self.get_all_filepaths(os.path.join('.cvs',
+        for path in self.get_all_filepaths(os.path.join('.cvs',
                                                      'objects',
                                                      object_hash[:2]),
-                                        exclude_cvs=False):
-            parts = p.split('\\')
+                                           exclude_cvs=False):
+            parts = path.split('\\')
             if object_hash[2:] in parts[-1]:
-                yield p, f'{parts[-2]}{parts[-1]}'
+                yield path, f'{parts[-2]}{parts[-1]}'
         return None
 
     def exist(self, path):

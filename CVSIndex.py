@@ -12,13 +12,13 @@ class CVSIndex:
         else:
             index = ''
 
-        d = {}
-        for l in index.split('\n'):
-            parts = l.split(' ')
+        index_dict = {}
+        for line in index.split('\n'):
+            parts = line.split(' ')
             if len(parts) > 1:
-                d[parts[0].replace("_", " ")] = parts[1]
+                index_dict[parts[0].replace("_", " ")] = parts[1]
 
-        return d
+        return index_dict
 
     def write_index(self, d):
         with open(self._rep + '\\.cvs\\index', 'w') as f:

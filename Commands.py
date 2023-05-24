@@ -97,31 +97,31 @@ class AddCommand(CVSCommand):
 
         # indexing and logging
         index = CVSIndex.CVSIndex(self._rep)
-        d = index.read_index()
-        if self._files.get_full_path(path) in d.keys() and \
-                not h == d[self._files.get_full_path(path)]:
-            with open(self._rep + '\\.cvs\\LOG', 'a') as f:
-                f.truncate()
-                f.write(
+        index_dict = index.read_index()
+        if self._files.get_full_path(path) in index_dict.keys() and \
+                not h == index_dict[self._files.get_full_path(path)]:
+            with open(self._rep + '\\.cvs\\LOG', 'a') as log_file:
+                log_file.truncate()
+                log_file.write(
                     f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
                     f'CHANGED -- {self._files.get_full_path(path)}'
-                    f' -- {d[self._files.get_full_path(path)]} -> {h}\n')
-                d[self._files.get_full_path(path)] = h
-                index.write_index(d)
-        elif self._files.get_full_path(path) not in d.keys():
-            d[self._files.get_full_path(path)] = h
-            index.write_index(d)
-            with open(self._rep + '\\.cvs\\LOG', 'a') as f:
-                f.truncate()
+                    f' -- {index_dict[self._files.get_full_path(path)]} -> {h}\n')
+                index_dict[self._files.get_full_path(path)] = h
+                index.write_index(index_dict)
+        elif self._files.get_full_path(path) not in index_dict.keys():
+            index_dict[self._files.get_full_path(path)] = h
+            index.write_index(index_dict)
+            with open(self._rep + '\\.cvs\\LOG', 'a') as log_file:
+                log_file.truncate()
                 print(
                     f'>> File \'{self._files.get_full_path(path)}\' was added')
-                f.write(
+                log_file.write(
                     f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
                     f'ADDED -- {self._files.get_full_path(path)}'
-                    f' -- {d[self._files.get_full_path(path)]}\n')
+                    f' -- {index_dict[self._files.get_full_path(path)]}\n')
         else:
-            d[self._files.get_full_path(path)] = h
-            index.write_index(d)
+            index_dict[self._files.get_full_path(path)] = h
+            index.write_index(index_dict)
 
     @staticmethod
     def _read_file(file_path):
@@ -168,20 +168,20 @@ class CommitCommand(CVSCommand):
                  f'{self._message}'
         h = self._blob_builder.build(commit)
 
-        with open(self._rep + '\\.cvs\\COMMITLOG', 'r') as f:
-            text = f.read()
+        with open(self._rep + '\\.cvs\\COMMITLOG', 'r') as log_file:
+            text = log_file.read()
 
-        with open(self._rep + '\\.cvs\\COMMITLOG', 'a') as f:
-            f.truncate()
-            f.write(
+        with open(self._rep + '\\.cvs\\COMMITLOG', 'a') as log_file:
+            log_file.truncate()
+            log_file.write(
                 f'Commit {h} -- {datetime.now().strftime("%d/%m/%y %H:%M:%S")}'
                 f' -- message: \'{self._message}\':\n')
             if parent is not None:
                 previous_indexes = text[text.index(parent):]
             index = CVSIndex.CVSIndex(self._rep)
-            d = index.read_index()
-            for file in d.keys():
-                if parent is not None and d[file] not in previous_indexes:
+            index_dict = index.read_index()
+            for file in index_dict.keys():
+                if parent is not None and index_dict[file] not in previous_indexes:
                     if file in previous_indexes:
                         print(f'>> Commit log updated: {file} changed')
                         changes.append(f'File {file} changed')
@@ -191,9 +191,9 @@ class CommitCommand(CVSCommand):
                 if parent is None:
                     print(f'>> Commit log updated: {file} added')
                     changes.append(f'File {file} added')
-                f.write(f'{file} {d[file]}\n')
+                log_file.write(f'{file} {index_dict[file]}\n')
             for record in changes:
-                f.write(f'-> {record}\n')
+                log_file.write(f'-> {record}\n')
         print(
             f'>> Commit \'{h}\' has been deployed with message: '
             f'\'{self._message}\'')
