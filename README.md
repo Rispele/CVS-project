@@ -34,3 +34,10 @@
   - tag tag-name 'message' - создает тэг с сообщением message
   - tag show - показывает список тэгов
   - tag delete tag-name - удаляет тэг
+### help
+  Для получения информации о коммандах в консоли напишите название комманды с аргументом help. 
+  #### Пример: 
+  - checkout help
+  - commit help
+  - tag help
+  - ...
