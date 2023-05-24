@@ -19,20 +19,20 @@ class CVSTreeBuilder:
 
     def _build(self, path):
         tree = []
-        for path in os.listdir(path):
-            if '.cvs' in path:
+        for single_path in os.listdir(path):
+            if '.cvs' in single_path:
                 continue
 
-            to_open_path = f'{path}\\{path}'
+            to_open_path = f'{path}\\{single_path}'
             if os.path.isfile(to_open_path):
                 if to_open_path in self._indexed:
                     self._not_found.remove(to_open_path)
-                    tree.append(f'blob {self._index[to_open_path]} {path}')
+                    tree.append(f'blob {self._index[to_open_path]} {single_path}')
             else:
                 obj_hash, is_empty = self._build(to_open_path)
                 if is_empty:
                     continue
-                tree.append(f'tree {obj_hash} {path}')
+                tree.append(f'tree {obj_hash} {single_path}')
 
         if len(tree) == 0:
             return '', True

@@ -14,14 +14,12 @@ class CVSIndex:
 
         index_dict = {}
         for line in index.split('\n'):
-            parts = line.split(' ')
-            if len(parts) > 1:
-                index_dict[parts[0].replace("_", " ")] = parts[1]
-
+            if len(line) >= 40:
+                index_dict[line[:-41]] = line[-40:]
         return index_dict
 
     def write_index(self, d):
         with open(self._rep + '\\.cvs\\index', 'w') as f:
             f.truncate()
             for key, value in d.items():
-                f.write(f'{key.replace(" ", "_")} {value}\n')
+                f.write(f'{key} {value}\n')

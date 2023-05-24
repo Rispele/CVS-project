@@ -208,7 +208,7 @@ class CheckoutCommand(CVSCommand):
 
     @staticmethod
     def print_help():
-        print('-> Чекаут на вектку, тэг или коммит')
+        print('-> Чекаут на ветку, тэг или коммит')
         print('-> Пример: checkout to - где to - имя ветки, тега или комита')
 
     def __init__(self, rep, to):
