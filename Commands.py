@@ -21,10 +21,21 @@ class CVSCommand(abc.ABC):
     def _do(self):
         raise NotImplementedError
 
+    @staticmethod
+    @abc.abstractmethod
+    def print_help():
+        raise NotImplementedError
+
     pass
 
 
 class InitCommand(CVSCommand):
+    @staticmethod
+    def print_help():
+        print('-> Инициализирует репозиторий в '
+              'папке, из которой cvs был открыт')
+        pass
+
     def __init__(self, path):
         self._type = 'init'
         self._path = path
@@ -51,10 +62,16 @@ class InitCommand(CVSCommand):
         print('>> Repo initialized')
         pass
 
-    pass
-
 
 class AddCommand(CVSCommand):
+    @staticmethod
+    def print_help():
+        print('-> Команда add добавляет указанный файл или все файлы в указанной'
+              ' папке в индекс. Принимает единственный параметр path - путь до'
+              ' файла или дирректории. Пример использования: '
+              'add \'folder\\1.txt\', где folder\\1.txt путь до файла '
+              'относительно корня репозитория')
+
     def __init__(self, rep, path=''):
         self._path = path
         self._rep = rep
@@ -114,10 +131,14 @@ class AddCommand(CVSCommand):
         else:
             raise Exception
 
-    pass
-
 
 class CommitCommand(CVSCommand):
+    @staticmethod
+    def print_help():
+        print('-> commit \'message\' - закомитить все добавленные в индекс '
+              'файлы с сообщением message. \n'
+              '-> commit show - покажет список всех комитов')
+
     def __init__(self, rep, message):
         self._rep = rep
         self._message = message
@@ -182,10 +203,13 @@ class CommitCommand(CVSCommand):
         self._branch_processor.set_branch_commit(branch, h)
         pass
 
-    pass
-
 
 class CheckoutCommand(CVSCommand):
+
+    @staticmethod
+    def print_help():
+        print('-> Чекаут на вектку, тэг или коммит')
+        print('-> Пример: checkout to - где to - имя ветки, тега или комита')
 
     def __init__(self, rep, to):
         self._rep = rep
@@ -245,10 +269,16 @@ class CheckoutCommand(CVSCommand):
 
         return self._files.read_file(path).split()[0]
 
-    pass
-
 
 class BranchCommand(CVSCommand):
+
+    @staticmethod
+    def print_help():
+        print('-> Принимает или название ветки или один из двух аргументов: '
+              'show, delete branch-name Примеры: \n'
+              '-> branch branch-name - создает ветку \n'
+              '-> branch show - показывает список веток \n'
+              '-> branch delete branch-name - удаляет ветку')
 
     def __init__(self, rep, name):
         self._rep = rep
@@ -280,10 +310,16 @@ class BranchCommand(CVSCommand):
         self._files.remove(f'.cvs/refs/heads/{self._name}')
         pass
 
-    pass
-
 
 class CreateTagCommand(CVSCommand):
+    @staticmethod
+    def print_help():
+        print('-> Принимает или название тэга с сообщеием или один из двух '
+              'аргументов: show, delete tag-name. Примеры: ')
+        print('-> tag tag-name \'message\' - создает тэг с сообщением message')
+        print('-> tag show - показывает список тэгов')
+        print('-> tag delete tag-name - удаляет тэг')
+
     def __init__(self, rep, name, message=''):
         self._rep = rep
         self._name = name
@@ -316,5 +352,3 @@ class CreateTagCommand(CVSCommand):
             print(f'>> Unable to find tag: {self._name}')
             return
         self._files.remove(path)
-
-    pass

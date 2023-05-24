@@ -1,6 +1,5 @@
 import os
 
-import CVSFileSystemAdapter
 import Commands
 from CVSBranchProcessor import CVSBranchProcessor
 from CVSFileSystemAdapter import CVSFileSystemAdapter
@@ -14,6 +13,20 @@ def extract_message(command):
     message_end = (command[message_start:]).index('\'') + message_start
     return command[message_start:message_end]
 
+def show_help(command):
+    if command_tokens[0] == 'init':
+        Commands.InitCommand.print_help()
+    elif command_tokens[0] == 'add':
+        Commands.AddCommand.print_help()
+    elif command_tokens[0] == 'commit':
+        Commands.CommitCommand.print_help()
+    elif command_tokens[0] == 'branch':
+        Commands.BranchCommand.print_help()
+    elif command_tokens[0] == 'tag':
+        Commands.CreateTagCommand.print_help()
+    else:
+        print(f'>> Unknown command {command_tokens[0]}')
+
 
 current_path = str(os.getcwd())
 branch_processor = CVSBranchProcessor(current_path)
@@ -23,6 +36,10 @@ while True:
     command = str(input()).lstrip().rstrip()
     command_tokens = command.split()
     if len(command_tokens) == 0:
+        continue
+
+    if len(command_tokens) > 1 and command_tokens[1] == 'help':
+        show_help(command_tokens[0])
         continue
 
     if command_tokens[0] == 'init':
