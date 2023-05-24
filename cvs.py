@@ -13,6 +13,7 @@ def extract_message(command):
     message_end = (command[message_start:]).index('\'') + message_start
     return command[message_start:message_end]
 
+
 def show_help(command_tokens):
     if command_tokens[0] == 'init':
         Commands.InitCommand.print_help()
@@ -131,8 +132,9 @@ def ExecuteTagCommand(command_tokens, current_path, command, files):
     tag = Commands.CreateTagCommand(current_path, tag_name, message)
     tag()
 
+
 def main():
-    current_path = str(os.getcwd())
+    current_path = str(os.getcwd().replace('/', '\\'))
     branch_processor = CVSBranchProcessor(current_path)
     files = CVSFileSystemAdapter(current_path)
 
@@ -153,7 +155,8 @@ def main():
         elif command_tokens[0] == 'checkout':
             ExecuteCheckoutCommand(command_tokens, current_path)
         elif command_tokens[0] == 'branch':
-            ExecuteBranchCommand(command_tokens, current_path, branch_processor)
+            ExecuteBranchCommand(command_tokens,
+                                 current_path, branch_processor)
         elif command_tokens[0] == 'tag':
             ExecuteTagCommand(command_tokens, current_path, command, files)
         else:

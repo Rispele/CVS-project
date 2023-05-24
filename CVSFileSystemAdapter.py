@@ -1,8 +1,6 @@
 import os
 import queue
 
-import CVSBranchProcessor
-
 
 class CVSFileSystemAdapter:
     def __init__(self, rep):
@@ -65,12 +63,13 @@ class CVSFileSystemAdapter:
 
             path_part_0 = path[0]
             for f in path[2]:
-                yield os.path.join(path_part_0, f).replace(f'{self._rep}\\', '')
+                yield os.path.join(path_part_0, f)\
+                    .replace(f'{self._rep}\\', '')
 
     def get_object_path(self, object_hash):
         for path in self.get_all_filepaths(os.path.join('.cvs',
-                                                     'objects',
-                                                     object_hash[:2]),
+                                                        'objects',
+                                                        object_hash[:2]),
                                            exclude_cvs=False):
             parts = path.split('\\')
             if object_hash[2:] in parts[-1]:

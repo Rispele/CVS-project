@@ -66,9 +66,9 @@ class InitCommand(CVSCommand):
 class AddCommand(CVSCommand):
     @staticmethod
     def print_help():
-        print('-> Команда add добавляет указанный файл или все файлы в указанной'
-              ' папке в индекс. Принимает единственный параметр path - путь до'
-              ' файла или дирректории. Пример использования: '
+        print('-> Команда add добавляет указанный файл или все файлы в '
+              'указанной папке в индекс. Принимает единственный параметр '
+              'path - путь до файла или дирректории. Пример использования: '
               'add \'folder\\1.txt\', где folder\\1.txt путь до файла '
               'относительно корня репозитория')
 
@@ -105,7 +105,8 @@ class AddCommand(CVSCommand):
                 log_file.write(
                     f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
                     f'CHANGED -- {self._files.get_full_path(path)}'
-                    f' -- {index_dict[self._files.get_full_path(path)]} -> {h}\n')
+                    f' -- {index_dict[self._files.get_full_path(path)]} '
+                    f'-> {h}\n')
                 index_dict[self._files.get_full_path(path)] = h
                 index.write_index(index_dict)
         elif self._files.get_full_path(path) not in index_dict.keys():
@@ -181,7 +182,8 @@ class CommitCommand(CVSCommand):
             index = CVSIndex.CVSIndex(self._rep)
             index_dict = index.read_index()
             for file in index_dict.keys():
-                if parent is not None and index_dict[file] not in previous_indexes:
+                if parent is not None \
+                        and index_dict[file] not in previous_indexes:
                     if file in previous_indexes:
                         print(f'>> Commit log updated: {file} changed')
                         changes.append(f'File {file} changed')
@@ -343,7 +345,8 @@ class CreateTagCommand(CVSCommand):
 
         self._files.write(tag_path, f'{commit}\n{self._message}')
         print(
-            f'>> Tag {self._name} has been successfully added with message: \'{self._message}\'')
+            f'>> Tag {self._name} has been successfully added with message: '
+            f'\'{self._message}\'')
         pass
 
     def remove_tag(self):
