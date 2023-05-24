@@ -162,13 +162,16 @@ class TestCommands(TestCase):
         ExecuteCommitCommand('commit \'files\''.split(), self._test_folder, 'commit \'files\'')
         ExecuteCommitCommand('commit show'.split(), self._test_folder, 'commit show')
         ExecuteBranchCommand('branch newBranch'.split(), self._test_folder, CVSBranchProcessor(self._test_folder))
+        self.assertEqual(os.path.isfile(f'{self._test_folder}\\.cvs\\refs\\heads\\newbranch'), True)
         ExecuteBranchCommand('branch show'.split(), self._test_folder, CVSBranchProcessor(self._test_folder))
         ExecuteCheckoutCommand('checkout newbranch'.split(), self._test_folder)
-        ExecuteTagCommand('tag \'tag\' \'tagged\''.split(), self._test_folder, 'tag \'tag\' \'tagged\'',
+        ExecuteTagCommand('tag tag \'tagged\''.split(), self._test_folder, 'tag tag \'tagged\'',
                           CVSFileSystemAdapter(self._test_folder))
+        self.assertEqual(os.path.isfile(f'{self._test_folder}\\.cvs\\refs\\tags\\tag'), True)
         ExecuteTagCommand('tag show'.split(), self._test_folder, 'tag show', CVSFileSystemAdapter(self._test_folder))
         ExecuteTagCommand('tag delete tag'.split(), self._test_folder, 'tag delete tag',
                           CVSFileSystemAdapter(self._test_folder))
+        self.assertEqual(os.path.isfile(f'{self._test_folder}\\.cvs\\refs\\tags\\tag'), False)
         show_help('help tag'.split())
 
 
