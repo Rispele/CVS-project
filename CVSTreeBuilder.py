@@ -27,7 +27,8 @@ class CVSTreeBuilder:
             if os.path.isfile(to_open_path):
                 if to_open_path in self._indexed:
                     self._not_found.remove(to_open_path)
-                    tree.append(f'blob {self._index[to_open_path]} {single_path}')
+                    tree.append(
+                        f'blob {self._index[to_open_path]} {single_path}')
             else:
                 obj_hash, is_empty = self._build(to_open_path)
                 if is_empty:

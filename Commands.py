@@ -7,6 +7,7 @@ import CVSTreeBuilder
 import CVSFileSystemAdapter
 from datetime import datetime
 
+
 def get_log_path(rep):
     return os.path.join(rep, '.cvs', 'LOG')
 
@@ -76,7 +77,8 @@ class AddCommand(CVSCommand):
         print('-> Команда add добавляет указанный файл или все файлы в '
               'указанной папке в индекс. Принимает единственный параметр '
               'path - путь до файла или дирректории. Пример использования: '
-              f'add \'{os.path.join("folder","1.txt")}\', где {os.path.join("folder","1.txt")} путь до файла '
+              f'add \'{os.path.join("folder","1.txt")}\', '
+              f'где {os.path.join("folder","1.txt")} путь до файла '
               'относительно корня репозитория')
 
     def __init__(self, rep, path=''):

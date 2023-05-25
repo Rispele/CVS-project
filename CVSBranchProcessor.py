@@ -39,8 +39,8 @@ class CVSBranchProcessor:
         return self._files.read_file(path)
 
     def set_branch_commit(self, branch, commit_hash):
-        self._files.write(os.path.join('.cvs', 'refs', 'heads', branch), commit_hash)
-
+        self._files.write(
+            os.path.join('.cvs', 'refs', 'heads', branch), commit_hash)
         pass
 
     def set_head_to_commit(self, commit):
@@ -48,7 +48,6 @@ class CVSBranchProcessor:
         pass
 
     def set_head_to_branch(self, branch):
-        self._files.write(os.path.join('.cvs', 'HEAD'), f'ref: refs/heads/{branch}')
+        self._files.write(
+            os.path.join('.cvs', 'HEAD'), f'ref: refs/heads/{branch}')
         pass
-
-
