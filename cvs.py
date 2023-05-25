@@ -61,7 +61,7 @@ def ExecuteCommitCommand(command_tokens, current_path, command):
         commit = Commands.CommitCommand(current_path, message)
         commit()
     elif command_tokens[1] == 'show':
-        with open(current_path + '\\.cvs\\COMMITLOG', 'r') as f:
+        with open(os.path.join(current_path, '.cvs', 'COMMITLOG'), 'r') as f:
             text = f.read().split('\n')
             for line in text:
                 if '-- message' in line or '->' in line:
@@ -134,7 +134,7 @@ def ExecuteTagCommand(command_tokens, current_path, command, files):
 
 
 def main():
-    current_path = str(os.getcwd().replace('/', '\\'))
+    current_path = str(os.getcwd())
     branch_processor = CVSBranchProcessor(current_path)
     files = CVSFileSystemAdapter(current_path)
 

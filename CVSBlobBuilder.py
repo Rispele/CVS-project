@@ -10,10 +10,10 @@ class CVSBlobBuilder:
         obj_hash = CVSHash.get_cvs_hash(content)
 
         # blob file creation
-        dir_path = f'{self._rep}\\.cvs\\objects\\{obj_hash[:2]}'
+        dir_path = os.path.join(self._rep, '.cvs', 'objects', obj_hash[:2])
         if not os.path.exists(dir_path):
             os.mkdir(dir_path)
-        with open(dir_path + f'\\{obj_hash[2:]}', 'w') as f:
+        with open(os.path.join(dir_path, obj_hash[2:]), 'w') as f:
             f.truncate()
             f.write(content)
 

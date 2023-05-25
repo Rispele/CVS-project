@@ -23,7 +23,7 @@ class CVSTreeBuilder:
             if '.cvs' in single_path:
                 continue
 
-            to_open_path = f'{path}\\{single_path}'
+            to_open_path = os.path.join(path, single_path)
             if os.path.isfile(to_open_path):
                 if to_open_path in self._indexed:
                     self._not_found.remove(to_open_path)

@@ -1,4 +1,5 @@
 import os.path
+import os
 
 
 class CVSIndex:
@@ -6,8 +7,9 @@ class CVSIndex:
         self._rep = rep
 
     def read_index(self):
-        if os.path.exists(f'{self._rep}\\.cvs\\index'):
-            with open(self._rep + '\\.cvs\\index', 'r') as f:
+        path = os.path.join(self._rep, '.cvs', 'index')
+        if os.path.exists(path):
+            with open(path, 'r') as f:
                 index = f.read()
         else:
             index = ''
@@ -19,7 +21,7 @@ class CVSIndex:
         return index_dict
 
     def write_index(self, d):
-        with open(self._rep + '\\.cvs\\index', 'w') as f:
+        with open(os.path.join(self._rep, '.cvs', 'index'), 'w') as f:
             f.truncate()
             for key, value in d.items():
                 f.write(f'{key} {value}\n')
