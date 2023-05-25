@@ -7,6 +7,13 @@ import CVSTreeBuilder
 import CVSFileSystemAdapter
 from datetime import datetime
 
+def get_log_path(rep):
+    return os.path.join(rep, '.cvs', 'LOG')
+
+
+def get_commitlog_path(rep):
+    return os.path.join(rep, '.cvs', 'COMMITLOG')
+
 
 class CVSCommand(abc.ABC):
     @abc.abstractmethod
@@ -48,16 +55,16 @@ class InitCommand(CVSCommand):
             print('>> Already exist')
             return
 
-        os.mkdir(self._path + '\\.cvs')
-        os.mkdir(self._path + '\\.cvs\\objects')
-        os.mkdir(self._path + '\\.cvs\\refs')
-        os.mkdir(self._path + '\\.cvs\\refs\\heads')
-        os.mkdir(self._path + '\\.cvs\\refs\\tags')
-        with open(self._path + '\\.cvs\\HEAD', 'w') as f:
+        os.mkdir(os.path.join(self._path, '.cvs'))
+        os.mkdir(os.path.join(self._path, '.cvs', 'objects'))
+        os.mkdir(os.path.join(self._path, '.cvs', 'refs'))
+        os.mkdir(os.path.join(self._path, '.cvs', 'refs', 'heads'))
+        os.mkdir(os.path.join(self._path, '.cvs', 'refs', 'tags'))
+        with open(os.path.join(self._path, '.cvs', 'HEAD'), 'w') as f:
             f.write('ref: refs/heads/master')
-        with open(self._path + '\\.cvs\\LOG', 'w') as f:
+        with open(get_log_path(self._path), 'w') as f:
             f.write('List of changed files and time when added/changed:\n')
-        with open(self._path + '\\.cvs\\COMMITLOG', 'w') as f:
+        with open(get_commitlog_path(self._path), 'w') as f:
             f.write('Project commits:\n')
         print('>> Repo initialized')
         pass
@@ -69,7 +76,7 @@ class AddCommand(CVSCommand):
         print('-> Команда add добавляет указанный файл или все файлы в '
               'указанной папке в индекс. Принимает единственный параметр '
               'path - путь до файла или дирректории. Пример использования: '
-              'add \'folder\\1.txt\', где folder\\1.txt путь до файла '
+              f'add \'{os.path.join("folder","1.txt")}\', где {os.path.join("folder","1.txt")} путь до файла '
               'относительно корня репозитория')
 
     def __init__(self, rep, path=''):
@@ -100,7 +107,7 @@ class AddCommand(CVSCommand):
         index_dict = index.read_index()
         if self._files.get_full_path(path) in index_dict.keys() and \
                 not h == index_dict[self._files.get_full_path(path)]:
-            with open(self._rep + '\\.cvs\\LOG', 'a') as log_file:
+            with open(get_log_path(self._rep), 'a') as log_file:
                 log_file.truncate()
                 log_file.write(
                     f'{datetime.now().strftime("%d/%m/%y %H:%M:%S")}: '
@@ -112,7 +119,7 @@ class AddCommand(CVSCommand):
         elif self._files.get_full_path(path) not in index_dict.keys():
             index_dict[self._files.get_full_path(path)] = h
             index.write_index(index_dict)
-            with open(self._rep + '\\.cvs\\LOG', 'a') as log_file:
+            with open(get_log_path(self._rep), 'a') as log_file:
                 log_file.truncate()
                 print(
                     f'>> File \'{self._files.get_full_path(path)}\' was added')
@@ -169,10 +176,10 @@ class CommitCommand(CVSCommand):
                  f'{self._message}'
         h = self._blob_builder.build(commit)
 
-        with open(self._rep + '\\.cvs\\COMMITLOG', 'r') as log_file:
+        with open(get_commitlog_path(self._rep), 'r') as log_file:
             text = log_file.read()
 
-        with open(self._rep + '\\.cvs\\COMMITLOG', 'a') as log_file:
+        with open(get_commitlog_path(self._rep), 'a') as log_file:
             log_file.truncate()
             log_file.write(
                 f'Commit {h} -- {datetime.now().strftime("%d/%m/%y %H:%M:%S")}'
@@ -258,14 +265,14 @@ class CheckoutCommand(CVSCommand):
         return fittings[0][1]
 
     def _get_branch_commit(self):
-        path = f'.cvs\\refs\\heads\\{self._to}'
+        path = os.path.join('.cvs', 'refs', 'heads', self._to)
         if not self._files.exist(path):
             return None
 
         return self._files.read_file(path)
 
     def _get_tag_commit(self):
-        path = f'.cvs\\refs\\tags\\{self._to}'
+        path = os.path.join('.cvs', 'refs', 'tags', self._to)
         if not self._files.exist(path):
             return None
 
@@ -294,7 +301,7 @@ class BranchCommand(CVSCommand):
         pass
 
     def _do(self):
-        branch_path = f'.cvs\\refs\\heads\\{self._name}'
+        branch_path = path = os.path.join('.cvs', 'refs', 'heads', self._name)
         branch = self._branch_processor.get_head_branch()
         commit = ''
         if branch is None:
@@ -309,7 +316,7 @@ class BranchCommand(CVSCommand):
         if self._branch_processor.get_head_branch() == self._name:
             commit = self._branch_processor.get_branch_commit(self._name)
             self._branch_processor.set_head_to_commit(commit)
-        self._files.remove(f'.cvs/refs/heads/{self._name}')
+        self._files.remove(os.path.join('.cvs', 'refs', 'heads', self._name))
         pass
 
 
@@ -335,7 +342,7 @@ class CreateTagCommand(CVSCommand):
         pass
 
     def _do(self):
-        tag_path = f'.cvs\\refs\\tags\\{self._name}'
+        tag_path = os.path.join('.cvs', 'refs', 'tags', self._name)
         branch = self._branch_processor.get_head_branch()
         commit = ''
         if branch is None:

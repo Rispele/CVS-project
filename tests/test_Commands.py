@@ -36,7 +36,7 @@ def get_file_content(file_location):
 
 class TestCommands(TestCase):
     def setUp(self):
-        self._test_folder = os.path.join(str(os.getcwd()), 'test_repo')
+        self._test_folder = os.path.join(str(os.getcwd()), 'tests', 'test_repo')
 
     def test_init(self):
         clear_repo(self)
@@ -109,17 +109,25 @@ class TestCommands(TestCase):
         AddCommand(self._test_folder, '')()
         CommitCommand(self._test_folder, '')()
 
+        with open(os.path.join(self._test_folder, '.cvs', 'refs', 'heads', 'master')) as f:
+            commit_hash1 = f.read()[:6]
+
+        with open(os.path.join(self._test_folder, '.cvs', 'index')) as f:
+            file_hash1 = f.read().split('\n')[0][-40:][:6]
+
         with open(os.path.join(self._test_folder, 'file2.txt'), 'w') as f:
             f.write('edited content2')
         AddCommand(self._test_folder, '')()
         CommitCommand(self._test_folder, '')()
         edited_file_hash = get_file_content(
             os.path.join(self._test_folder, '.cvs', 'index')).split('\n')[0][-40:]
-        CheckoutCommand(self._test_folder, 'd57c3c')()
+
+        CheckoutCommand(self._test_folder, commit_hash1)()
         file_hash_after_checkout = get_file_content(
             os.path.join(self._test_folder, '.cvs', 'index')).split('\n')[0][-40:]
 
-        self.assertEqual('6dc99d' in file_hash_after_checkout, True)
+
+        self.assertEqual(file_hash1 in file_hash_after_checkout, True)
         self.assertEqual(file_hash_after_checkout != edited_file_hash, True)
 
     def test_branch(self):
@@ -171,11 +179,11 @@ class TestCommands(TestCase):
                              self._test_folder,
                              CVSBranchProcessor(self._test_folder))
         self.assertEqual(os.path.isfile(
-            os.path.join(self._test_folder, '.cvs', 'refs', 'heads', 'newbranch')), True)
+            os.path.join(self._test_folder, '.cvs', 'refs', 'heads', 'newBranch')), True)
         ExecuteBranchCommand('branch show'.split(),
                              self._test_folder,
                              CVSBranchProcessor(self._test_folder))
-        ExecuteCheckoutCommand('checkout newbranch'.split(),
+        ExecuteCheckoutCommand('checkout newBranch'.split(),
                                self._test_folder)
         ExecuteTagCommand('tag tag \'tagged\''.split(),
                           self._test_folder,
