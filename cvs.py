@@ -133,35 +133,38 @@ def ExecuteTagCommand(command_tokens, current_path, command, files):
     tag()
 
 
-def main():
-    current_path = str(os.getcwd())
+def TryExecuteCommand(command, current_path):
     branch_processor = CVSBranchProcessor(current_path)
     files = CVSFileSystemAdapter(current_path)
+    command_tokens = command.split()
+    if len(command_tokens) == 0:
+        return
+    if len(command_tokens) > 1 and command_tokens[1] == 'help':
+        show_help(command_tokens)
+        return
+    if command_tokens[0] == 'init':
+        ExecuteInitCommand(command_tokens, current_path)
+    elif command_tokens[0] == 'add':
+        ExecuteAddCommand(command_tokens, current_path)
+    elif command_tokens[0] == 'commit':
+        ExecuteCommitCommand(command_tokens, current_path, command)
+    elif command_tokens[0] == 'checkout':
+        ExecuteCheckoutCommand(command_tokens, current_path)
+    elif command_tokens[0] == 'branch':
+        ExecuteBranchCommand(command_tokens,
+                             current_path, branch_processor)
+    elif command_tokens[0] == 'tag':
+        ExecuteTagCommand(command_tokens, current_path, command, files)
+    else:
+        print(f'>> Unknown command {command_tokens[0]}')
+        return
 
+
+def main():
+    current_path = str(os.getcwd())
     while True:
         command = str(input()).lstrip().rstrip()
-        command_tokens = command.split()
-        if len(command_tokens) == 0:
-            continue
-        if len(command_tokens) > 1 and command_tokens[1] == 'help':
-            show_help(command_tokens)
-            continue
-        if command_tokens[0] == 'init':
-            ExecuteInitCommand(command_tokens, current_path)
-        elif command_tokens[0] == 'add':
-            ExecuteAddCommand(command_tokens, current_path)
-        elif command_tokens[0] == 'commit':
-            ExecuteCommitCommand(command_tokens, current_path, command)
-        elif command_tokens[0] == 'checkout':
-            ExecuteCheckoutCommand(command_tokens, current_path)
-        elif command_tokens[0] == 'branch':
-            ExecuteBranchCommand(command_tokens,
-                                 current_path, branch_processor)
-        elif command_tokens[0] == 'tag':
-            ExecuteTagCommand(command_tokens, current_path, command, files)
-        else:
-            print(f'>> Unknown command {command_tokens[0]}')
-            continue
+        TryExecuteCommand(command, current_path)
 
 
 if __name__ == "__main__":

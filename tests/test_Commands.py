@@ -1,14 +1,16 @@
-from unittest import TestCase, main
-from shutil import rmtree
+import sys
 import os
 
+from unittest import TestCase, main
+from shutil import rmtree
+from io import StringIO
 from CVSBranchProcessor import CVSBranchProcessor
 from CVSFileSystemAdapter import CVSFileSystemAdapter
 from Commands import InitCommand, AddCommand, CommitCommand, CheckoutCommand, \
     BranchCommand, CreateTagCommand
 from cvs import ExecuteInitCommand, ExecuteAddCommand, ExecuteCommitCommand, \
     ExecuteCheckoutCommand,\
-    ExecuteBranchCommand, ExecuteTagCommand, show_help
+    ExecuteBranchCommand, ExecuteTagCommand, show_help, TryExecuteCommand
 
 
 def clear_repo(self):
@@ -190,39 +192,53 @@ class TestCommands(TestCase):
         clear_repo(self)
         build_repo(self)
 
-        ExecuteInitCommand('init'.split(), self._test_folder)
-        ExecuteAddCommand('add'.split(), self._test_folder)
-        ExecuteCommitCommand('commit \'files\''.split(),
-                             self._test_folder, 'commit \'files\'')
-        ExecuteCommitCommand('commit show'.split(),
-                             self._test_folder, 'commit show')
-        ExecuteBranchCommand('branch newBranch'.split(),
-                             self._test_folder,
-                             CVSBranchProcessor(self._test_folder))
+        TryExecuteCommand('init', self._test_folder)
+        TryExecuteCommand('add', self._test_folder)
+        TryExecuteCommand('commit show', self._test_folder)
+        TryExecuteCommand('commit', self._test_folder)
+        TryExecuteCommand('checkout master', self._test_folder)
+        TryExecuteCommand('commit \'files\'', self._test_folder)
+        TryExecuteCommand('branch newBranch', self._test_folder)
         self.assertEqual(os.path.isfile(os.path.join(
             self._test_folder, '.cvs', 'refs', 'heads', 'newBranch')), True)
-        ExecuteBranchCommand('branch show'.split(),
-                             self._test_folder,
-                             CVSBranchProcessor(self._test_folder))
-        ExecuteCheckoutCommand('checkout newBranch'.split(),
-                               self._test_folder)
-        ExecuteTagCommand('tag tag \'tagged\''.split(),
-                          self._test_folder,
-                          'tag tag \'tagged\'',
-                          CVSFileSystemAdapter(self._test_folder))
+        TryExecuteCommand('branch show', self._test_folder)
+        TryExecuteCommand('checkout newBranch', self._test_folder)
+        TryExecuteCommand('tag newTag', self._test_folder)
+        TryExecuteCommand('tag tag \'tagged\'', self._test_folder)
         self.assertEqual(os.path.isfile(os.path.join(
             self._test_folder, '.cvs', 'refs', 'tags', 'tag')), True)
-        ExecuteTagCommand('tag show'.split(),
-                          self._test_folder,
-                          'tag show',
-                          CVSFileSystemAdapter(self._test_folder))
-        ExecuteTagCommand('tag delete tag'.split(),
-                          self._test_folder,
-                          'tag delete tag',
-                          CVSFileSystemAdapter(self._test_folder))
+        TryExecuteCommand('tag show', self._test_folder)
+        TryExecuteCommand('tag delete tag', self._test_folder)
         self.assertEqual(os.path.isfile(os.path.join(
             self._test_folder, '.cvs', 'refs', 'tags', 'tag')), False)
-        show_help('help tag'.split())
+        show_help('tag help'.split())
+
+    def test_wrong_input(self):
+        output = StringIO()
+        sys.stdout = output
+        TryExecuteCommand('branch', self._test_folder)
+        output.seek(0)
+        self.assertEqual('must have' in output.read(), True)
+
+        TryExecuteCommand('someCommand', self._test_folder)
+        output.seek(0)
+        self.assertEqual('Unknown' in output.read(), True)
+
+        TryExecuteCommand('commit error', self._test_folder)
+        output.seek(0)
+        self.assertEqual('Unknown' in output.read(), True)
+
+        TryExecuteCommand('commit error \'message\'', self._test_folder)
+        output.seek(0)
+        self.assertEqual('must have' in output.read(), True)
+
+        TryExecuteCommand('Commit help', self._test_folder)
+        output.seek(0)
+        self.assertEqual('Unknown' in output.read(), True)
+
+        TryExecuteCommand('checkout', self._test_folder)
+        output.seek(0)
+        self.assertEqual('must have' in output.read(), True)
 
 
 if __name__ == "__main__":
